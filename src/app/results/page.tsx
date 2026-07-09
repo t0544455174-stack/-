@@ -52,7 +52,7 @@ export default function Results() {
         </motion.div>
         <h1 className="text-3xl font-bold text-slate-800 mb-2">הנקודה</h1>
         <p className="text-slate-500 max-w-md mx-auto">
-          עברת 10 שנים מגיל {state.startAge} עד 26. הנה מה שהיה לך...
+          עברת 10 שנים מגיל {state.startAge} עד {state.startAge + 10}. הנה מה שהיה לך...
         </p>
       </motion.div>
 

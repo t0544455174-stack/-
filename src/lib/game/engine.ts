@@ -83,12 +83,15 @@ export interface CurrentFlow {
   totalInvestments: number;
 }
 
+export type LifePath = "army" | "national_service" | "civilian";
+
 export interface GameState {
   startAge: number;
   currentAge: number;
   currentMonth: number;
   dream: Dream | null;
   knowledgeLevel: string | null;
+  path: LifePath;
   monthlyIncome: number;
   cash: number;
   savings: number;
@@ -175,6 +178,7 @@ export function createGameState(profile: {
   dream: Dream | null;
   knowledgeLevel: string | null;
   startIncome: number;
+  path: LifePath;
 }): GameState {
   const startAge = Math.max(16, Math.min(20, profile.age));
   return {
@@ -183,6 +187,7 @@ export function createGameState(profile: {
     currentMonth: 0,
     dream: profile.dream,
     knowledgeLevel: profile.knowledgeLevel,
+    path: profile.path,
     monthlyIncome: profile.startIncome,
     cash: 0,
     savings: 0,
@@ -208,19 +213,36 @@ export function createGameState(profile: {
 }
 
 function generateLifeEvent(state: GameState): LifeEvent | null {
-  const armyStartMonth = Math.ceil((18 - state.startAge) * 12);
-  if (state.currentMonth === armyStartMonth && !state.armyTriggered && state.startAge < 18) {
+  const serviceStartMonth = Math.ceil((18 - state.startAge) * 12);
+  const goesToService = state.path === "army" || state.path === "national_service";
+
+  if (
+    goesToService &&
+    state.startAge < 18 &&
+    state.currentMonth === serviceStartMonth &&
+    !state.armyTriggered
+  ) {
     state.armyTriggered = true;
     state.inArmy = true;
-    state.armyMonthsLeft = 24;
-    return { description: "🎖️ גיוס לצבא! שכר חייל: ₪1,200 לחודש, הוצאות נמוכות", amount: 0, type: "army" };
+    if (state.path === "army") {
+      state.armyMonthsLeft = 24;
+      return { description: "🎖️ גיוס לצבא! שכר חייל: ₪1,200 לחודש, הוצאות נמוכות", amount: 0, type: "army" };
+    }
+    state.armyMonthsLeft = 12;
+    return { description: "🤝 יציאה לשנת שירות לאומי! מלגה חודשית, הוצאות נמוכות", amount: 0, type: "army" };
   }
 
   if (state.inArmy) {
     state.armyMonthsLeft--;
     if (state.armyMonthsLeft <= 0) {
       state.inArmy = false;
-      return { description: "🎖️ שוחררת מהצבא! מקבל מענק שחרור של ₪15,000", amount: 15000, type: "release" };
+      const grant = state.path === "army" ? 15000 : 5000;
+      const label = state.path === "army" ? "שוחררת מהצבא" : "סיימת את השירות הלאומי";
+      return {
+        description: `🎖️ ${label}! מקבל מענק סיום של ₪${grant.toLocaleString()}`,
+        amount: grant,
+        type: "release",
+      };
     }
   }
 
@@ -366,7 +388,7 @@ export function processTurn(state: GameState, allocation: Allocation): GameState
   state.currentMonth++;
   state.currentAge = state.startAge + state.currentMonth / 12;
 
-  if (state.currentAge >= 26) {
+  if (state.currentAge >= state.startAge + 10) {
     state.isGameOver = true;
   }
 
