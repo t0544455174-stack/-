@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Gamepad2, BarChart3 } from "lucide-react";
+import { Home, Gamepad2, BarChart3, UserCircle } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/", label: "בית", icon: Home },
   { path: "/game", label: "משחק", icon: Gamepad2 },
+  { path: "/profile", label: "פרופיל", icon: UserCircle },
   { path: "/dashboard", label: "דשבורד", icon: BarChart3 },
 ];
 

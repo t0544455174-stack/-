@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Rocket, Target, BookOpen, Wallet, Sparkles, GraduationCap, Shield, HandHeart, Briefcase } from "lucide-react";
-import { createGameState, saveGameState, type Dream, type LifePath } from "@/lib/game/engine";
+import { createGameState, saveGameState, JOBS, type Dream, type LifePath, type Job } from "@/lib/game/engine";
 
 const DREAMS: Dream[] = [
   { id: "travel", label: "טיול גדול בעולם", icon: "🌍", target: 30000 },
@@ -27,10 +27,6 @@ const PATHS: { id: LifePath; label: string; desc: string; icon: typeof Shield }[
   { id: "civilian", label: "ישר לעבודה/לימודים", desc: "בלי הפסקת שירות — ההכנסה עולה לפי גיל כרגיל", icon: Briefcase },
 ];
 
-function defaultIncomeForAge(age: number): number {
-  return 2000 + (age - 16) * 1000;
-}
-
 const TOTAL_STEPS = 7;
 
 export default function Onboarding() {
@@ -40,12 +36,14 @@ export default function Onboarding() {
   const [path, setPath] = useState<LifePath>("army");
   const [dream, setDream] = useState<Dream | null>(null);
   const [knowledgeLevel, setKnowledgeLevel] = useState<string | null>(null);
-  const [startIncome, setStartIncome] = useState(defaultIncomeForAge(16));
+  const [job, setJob] = useState<Job>(JOBS[0]);
+  const [startIncome, setStartIncome] = useState(JOBS[0].default);
   const [incomeTouched, setIncomeTouched] = useState(false);
 
   useEffect(() => {
-    if (!incomeTouched) setStartIncome(defaultIncomeForAge(age));
-  }, [age, incomeTouched]);
+    setIncomeTouched(false);
+    setStartIncome(job.default);
+  }, [job]);
 
   const steps = [
     { title: "ברוכים הבאים לסימולציית החיים!", subtitle: "תלמד/י פיננסים בכיף - בלי סיכון, בלי לחץ" },
@@ -53,12 +51,12 @@ export default function Onboarding() {
     { title: "מה המסלול שלך?", subtitle: age < 18 ? "זה ישפיע על ההכנסה וההוצאות שלך בשנים הקרובות" : "בגיל הזה השירות כבר מאחוריך — זה רק לצורך הסיפור" },
     { title: "מה החלום שלך?", subtitle: "בחר/י יעד - נראה אם תגיע/י אליו!" },
     { title: "מה רמת הידע שלך?", subtitle: "נתאים את החוויה אליך" },
-    { title: "מה ההכנסה החודשית?", subtitle: "ברירת המחדל מותאמת לגיל שבחרת — אפשר לשנות בחופשיות" },
+    { title: "באיזו עבודה את/ה עובד/ת?", subtitle: "כל מקצוע מגיע עם טווח שכר משלו — ואפשר לכוון בדיוק לשכר שלך" },
     { title: "מוכנ/ה להתחיל?", subtitle: "הכל מוכן - בוא/י נתחיל לשחק!" },
   ];
 
   const handleStart = () => {
-    const state = createGameState({ age, dream, knowledgeLevel, startIncome, path });
+    const state = createGameState({ age, dream, knowledgeLevel, startIncome, path, jobLabel: job.label });
     saveGameState(state);
     router.push("/game");
   };
@@ -140,20 +138,27 @@ export default function Onboarding() {
             )}
 
             {step === 1 && (
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                {[16, 17, 18, 19, 20].map((a) => (
-                  <button
-                    key={a}
-                    onClick={() => setAge(a)}
-                    className={`aspect-square rounded-3xl border-2 font-bold text-2xl transition-all ${
-                      age === a
-                        ? "border-indigo-500 bg-indigo-500 text-white scale-105 shadow-lg shadow-indigo-500/30"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300"
-                    }`}
-                  >
-                    {a}
-                  </button>
-                ))}
+              <div className="flex-1 flex flex-col items-center justify-center gap-8">
+                <div className="text-center">
+                  <div className="text-6xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+                    {age}
+                  </div>
+                  <div className="text-slate-500 mt-1">שנים</div>
+                </div>
+                <input
+                  type="range"
+                  min="16"
+                  max="67"
+                  step="1"
+                  value={age}
+                  onChange={(e) => setAge(parseInt(e.target.value))}
+                  className="w-full max-w-md"
+                  style={{ accentColor: "#6366f1" }}
+                />
+                <div className="flex w-full max-w-md justify-between text-xs text-slate-400">
+                  <span>67</span>
+                  <span>16</span>
+                </div>
               </div>
             )}
 
@@ -234,34 +239,53 @@ export default function Onboarding() {
             )}
 
             {step === 5 && (
-              <div className="flex-1 flex flex-col items-center justify-center gap-8">
-                <div className="text-center">
-                  <div className="text-5xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-                    ₪{startIncome.toLocaleString()}
-                  </div>
-                  <div className="text-slate-500 mt-1">לחודש</div>
+              <div className="flex-1 flex flex-col gap-6">
+                <div className="grid grid-cols-2 gap-2">
+                  {JOBS.map((j) => (
+                    <button
+                      key={j.id}
+                      onClick={() => setJob(j)}
+                      className={`p-3 rounded-2xl border-2 text-right transition-all ${
+                        job.id === j.id ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white hover:border-indigo-200"
+                      }`}
+                    >
+                      <div className="font-bold text-slate-800 text-sm">{j.label}</div>
+                      <div className="text-[11px] text-slate-500">
+                        ₪{j.min.toLocaleString()}–{j.max.toLocaleString()}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <input
-                  type="range"
-                  min="2000"
-                  max="15000"
-                  step="500"
-                  value={startIncome}
-                  onChange={(e) => {
-                    setIncomeTouched(true);
-                    setStartIncome(parseInt(e.target.value));
-                  }}
-                  className="w-full max-w-md"
-                  style={{ accentColor: "#6366f1" }}
-                />
-                {age < 18 && path !== "civilian" && (
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
-                    <Wallet className="w-4 h-4" />
-                    <span>
-                      בגיל 18 {path === "army" ? "תתגייס/י לצבא עם שכר ₪1,200" : "תצא/י לשירות לאומי"}. אחרי זה ההכנסה תעלה.
-                    </span>
+
+                <div className="flex-1 flex flex-col items-center justify-center gap-6 border-t border-slate-100 pt-6">
+                  <div className="text-center">
+                    <div className="text-5xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+                      ₪{startIncome.toLocaleString()}
+                    </div>
+                    <div className="text-slate-500 mt-1">לחודש</div>
                   </div>
-                )}
+                  <input
+                    type="range"
+                    min={job.min}
+                    max={job.max}
+                    step="100"
+                    value={startIncome}
+                    onChange={(e) => {
+                      setIncomeTouched(true);
+                      setStartIncome(parseInt(e.target.value));
+                    }}
+                    className="w-full max-w-md"
+                    style={{ accentColor: "#6366f1" }}
+                  />
+                  {age < 18 && path !== "civilian" && (
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                      <Wallet className="w-4 h-4" />
+                      <span>
+                        בגיל 18 {path === "army" ? "תתגייס/י לצבא עם שכר ₪1,200" : "תצא/י לשירות לאומי"}. אחרי זה ההכנסה תעלה.
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -288,6 +312,10 @@ export default function Onboarding() {
                     <span className="font-bold text-slate-800">
                       {dream?.icon} {dream?.label}
                     </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">עבודה</span>
+                    <span className="font-bold text-slate-800">{job.label}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">הכנסה חודשית</span>

@@ -85,6 +85,25 @@ export interface CurrentFlow {
 
 export type LifePath = "army" | "national_service" | "civilian";
 
+export interface Job {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  default: number;
+}
+
+export const JOBS: Job[] = [
+  { id: "student", label: "סטודנט/ית / עבודה חלקית", min: 2000, max: 5000, default: 3000 },
+  { id: "office", label: "שכיר/ה במשרד", min: 6000, max: 12000, default: 8000 },
+  { id: "tech", label: "הייטק / תכנות", min: 12000, max: 28000, default: 17000 },
+  { id: "teacher", label: "הוראה / חינוך", min: 7000, max: 11000, default: 8500 },
+  { id: "healthcare", label: "רפואה / סיעוד", min: 9000, max: 16000, default: 11500 },
+  { id: "freelance", label: "עצמאי/ת", min: 5000, max: 20000, default: 10000 },
+  { id: "retired", label: "פנסיונר/ית", min: 4000, max: 9000, default: 6000 },
+  { id: "other", label: "אחר — אגדיר בעצמי", min: 2000, max: 30000, default: 5000 },
+];
+
 export interface GameState {
   startAge: number;
   currentAge: number;
@@ -92,6 +111,7 @@ export interface GameState {
   dream: Dream | null;
   knowledgeLevel: string | null;
   path: LifePath;
+  jobLabel: string;
   monthlyIncome: number;
   cash: number;
   savings: number;
@@ -179,8 +199,9 @@ export function createGameState(profile: {
   knowledgeLevel: string | null;
   startIncome: number;
   path: LifePath;
+  jobLabel: string;
 }): GameState {
-  const startAge = Math.max(16, Math.min(20, profile.age));
+  const startAge = Math.max(16, Math.min(67, profile.age));
   return {
     startAge,
     currentAge: startAge,
@@ -188,6 +209,7 @@ export function createGameState(profile: {
     dream: profile.dream,
     knowledgeLevel: profile.knowledgeLevel,
     path: profile.path,
+    jobLabel: profile.jobLabel,
     monthlyIncome: profile.startIncome,
     cash: 0,
     savings: 0,
