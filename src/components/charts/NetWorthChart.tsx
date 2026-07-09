@@ -33,7 +33,7 @@ export default function NetWorthChart({ data, showNoSave }: { data: NetWorthPoin
         />
         <Tooltip
           contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 13 }}
-          formatter={(value: number, name: string) => [formatCurrency(value), name === "netWorth" ? "שווי נטו" : "בלי חיסכון"]}
+          formatter={(value, name) => [formatCurrency(Number(value)), name === "netWorth" ? "שווי נטו" : "בלי חיסכון"]}
           labelFormatter={(label) => `גיל ${label}`}
         />
         {showNoSave && (

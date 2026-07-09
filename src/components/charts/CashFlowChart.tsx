@@ -26,7 +26,7 @@ export default function CashFlowChart({ flow }: { flow: CurrentFlow | null }) {
         />
         <Tooltip
           contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 13 }}
-          formatter={(value: number) => [formatCurrency(value), ""]}
+          formatter={(value) => [formatCurrency(Number(value)), ""]}
           cursor={{ fill: "rgba(0,0,0,0.03)" }}
         />
         <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={60}>

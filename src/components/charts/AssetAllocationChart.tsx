@@ -30,7 +30,7 @@ export default function AssetAllocationChart({ state }: { state: GameState }) {
         </Pie>
         <Tooltip
           contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 13 }}
-          formatter={(value: number, name: string) => [formatCurrency(value), name]}
+          formatter={(value, name) => [formatCurrency(Number(value)), String(name)]}
         />
       </PieChart>
     </ResponsiveContainer>
